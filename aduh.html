@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kembang Api dan Hati</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: black;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        /* Hati berdetak */
+        .heart-container {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 1s forwards;
+            position: absolute;
+        }
+
+        .heart {
+            width: 100px;
+            height: 100px;
+            background: red;
+            position: relative;
+            transform: rotate(-45deg);
+            animation: beat 1s infinite;
+        }
+
+        .heart::before,
+        .heart::after {
+            content: '';
+            width: 100px;
+            height: 100px;
+            background: red;
+            position: absolute;
+            border-radius: 50%;
+        }
+
+        .heart::before {
+            top: -50px;
+            left: 0;
+        }
+
+        .heart::after {
+            left: 50px;
+            top: 0;
+        }
+
+        @keyframes beat {
+            0%, 100% {
+                transform: scale(1) rotate(-45deg);
+            }
+            50% {
+                transform: scale(1.2) rotate(-45deg);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .text {
+            margin-top: 20px;
+            font-size: 24px;
+            text-align: center;
+            color: white;
+            border-right: 2px solid white; /* Efek kursor */
+            white-space: nowrap;
+            overflow: hidden;
+            width: 0;
+            animation: typing 2s steps(12) forwards, blink 0.5s step-end infinite alternate;
+        }
+
+        @keyframes typing {
+            from {
+                width: 0;
+            }
+            to {
+                width: 200px; /* Panjang teks */
+            }
+        }
+
+        @keyframes blink {
+            50% {
+                border-color: transparent;
+            }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+
+    <!-- Hati berdetak -->
+    <div class="heart-container" id="heart-container">
+        <div class="heart"></div>
+        <div class="text" id="text">Akhirnya bisaa</div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const heartContainer = document.getElementById('heart-container');
+
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        const particles = [];
+        const colors = ['#FF69B4', '#00FFFF', '#FF4500', '#32CD32', '#FFD700']; // Warna Pink, Cyan, Orange, Green, Yellow
+
+        function random(min, max) {
+            return Math.random() * (max - min) + min;
+        }
+
+        class Particle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                this.size = random(2, 5); // Ukuran lebih besar
+                this.life = 0;
+                this.maxLife = random(50, 150); // Partikel hidup lebih lama
+                this.speedX = random(-3, 3);
+                this.speedY = random(-5, 5); // Kecepatan Y lebih besar untuk efek jatuh
+                this.opacity = 1;
+                this.gravity = 0.05; // Menambahkan efek gravitasi
+            }
+
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                this.speedY += this.gravity; // Gravitasi mempengaruhi partikel
+                this.life++;
+                this.opacity = 1 - this.life / this.maxLife;
+
+                if (this.life >= this.maxLife) {
+                    this.size = 0;
+                }
+            }
+
+            draw() {
+                ctx.globalAlpha = this.opacity;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        function createFirework() {
+            const x = random(0, canvas.width);
+            const y = random(0, canvas.height / 2);
+
+            for (let i = 0; i < 150; i++) { // Partikel lebih banyak
+                particles.push(new Particle(x, y, colors[Math.floor(Math.random() * colors.length)]));
+            }
+        }
+
+        function animate() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach((particle, index) => {
+                particle.update();
+                particle.draw();
+
+                if (particle.size <= 0) {
+                    particles.splice(index, 1);
+                }
+            });
+
+            requestAnimationFrame(animate);
+        }
+
+        // Fireworks effect for 3 seconds
+        let fireworkInterval = setInterval(createFirework, 500);
+        setTimeout(() => {
+            clearInterval(fireworkInterval);
+            canvas.style.display = 'none';
+            heartContainer.style.display = 'flex';
+        }, 3000);
+
+        animate();
+    </script>
+</body>
+</html>
